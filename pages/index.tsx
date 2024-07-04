@@ -12,7 +12,8 @@ const App: React.FC = () => {
   const [selectedPrefecture, setSelectedPrefecture] = useState("");
   const [difficulty, setDifficulty] = useState(1);
   const [cardCount, setCardCount] = useState(2);
-  const [finalScore, setFinalScore] = useState(0);
+  const [correctRounds, setCorrectRounds] = useState(0);
+  const [hintsUsed, setHintsUsed] = useState(0);
 
   const startGame = (prefecture: string, diff: number, count: number) => {
     setSelectedPrefecture(prefecture);
@@ -21,12 +22,16 @@ const App: React.FC = () => {
     setGameState("playing");
   };
 
-  const endGame = () => {
+  const endGame = (correct: number, hints: number) => {
+    setCorrectRounds(correct);
+    setHintsUsed(hints);
     setGameState("end");
   };
 
   const restartGame = () => {
     setGameState("start");
+    setCorrectRounds(0);
+    setHintsUsed(0);
   };
 
   return (
@@ -38,6 +43,7 @@ const App: React.FC = () => {
           difficulty={difficulty}
           cardCount={cardCount}
           onGameEnd={endGame}
+          onReturnToTop={restartGame}
         />
       )}
       {gameState === "end" && (
@@ -46,7 +52,10 @@ const App: React.FC = () => {
             <CardTitle>ゲーム終了</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-center mb-4">最終スコア: {finalScore}</p>
+            <p className="text-center mb-2">
+              正解したラウンド: {correctRounds}/5
+            </p>
+            <p className="text-center mb-4">使用したヒント: {hintsUsed}</p>
             <Button onClick={restartGame} className="w-full">
               もう一度プレイ
             </Button>

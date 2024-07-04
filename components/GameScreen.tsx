@@ -2,15 +2,16 @@
 import React, { useState, useEffect } from "react";
 import { LandPriceCard } from "./LandPriceCard";
 import { getLandPriceData, LandPriceProperties } from "../utils/dataUtils";
-import { Button } from "../components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import confetti from "canvas-confetti";
 
 interface GameScreenProps {
   prefecture: string;
   difficulty: number;
   cardCount: number;
-  onGameEnd: () => void;
+  onGameEnd: (correctRounds: number, hintsUsed: number) => void;
+  onReturnToTop: () => void;
 }
 
 export const GameScreen: React.FC<GameScreenProps> = ({
@@ -18,25 +19,31 @@ export const GameScreen: React.FC<GameScreenProps> = ({
   difficulty,
   cardCount,
   onGameEnd,
+  onReturnToTop,
 }) => {
   const [landData, setLandData] = useState<LandPriceProperties[]>([]);
   const [currentCards, setCurrentCards] = useState<LandPriceProperties[]>([]);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [showResult, setShowResult] = useState(false);
-  const [score, setScore] = useState(0);
   const [round, setRound] = useState(1);
+  const [correctRounds, setCorrectRounds] = useState(0);
+  const [hintsUsed, setHintsUsed] = useState(0);
+  const [revealedHints, setRevealedHints] = useState<number[]>(
+    Array(cardCount).fill(0)
+  );
 
   useEffect(() => {
     const data = getLandPriceData(prefecture);
     setLandData(data);
     selectNewCards(data);
-  }, [prefecture]);
+  }, [prefecture, cardCount]);
 
   const selectNewCards = (data: LandPriceProperties[]) => {
     const shuffled = data.sort(() => 0.5 - Math.random());
     setCurrentCards(shuffled.slice(0, cardCount));
     setShowResult(false);
     setSelectedIndex(null);
+    setRevealedHints(Array(cardCount).fill(0));
   };
 
   const handleCardClick = (index: number) => {
@@ -45,7 +52,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({
       currentCards[index].L02_006 ===
       Math.max(...currentCards.map((card) => card.L02_006));
     if (correct) {
-      setScore(score + difficulty);
+      setCorrectRounds(correctRounds + 1);
       confetti({
         particleCount: 100,
         spread: 70,
@@ -56,11 +63,20 @@ export const GameScreen: React.FC<GameScreenProps> = ({
   };
 
   const handleNextRound = () => {
-    if (round < 10) {
+    if (round < 5) {
       setRound(round + 1);
       selectNewCards(landData);
     } else {
-      onGameEnd();
+      onGameEnd(correctRounds, hintsUsed);
+    }
+  };
+
+  const handleHint = (cardIndex: number) => {
+    if (revealedHints[cardIndex] < 3) {
+      const newRevealedHints = [...revealedHints];
+      newRevealedHints[cardIndex]++;
+      setRevealedHints(newRevealedHints);
+      setHintsUsed(hintsUsed + 1);
     }
   };
 
@@ -70,9 +86,13 @@ export const GameScreen: React.FC<GameScreenProps> = ({
         <CardTitle>どの地価が一番高いでしょうか？</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="mb-4">
-          <p>ラウンド: {round}/10</p>
-          <p>スコア: {score}</p>
+        <div className="mb-4 flex justify-between items-center">
+          <div>
+            <p>ラウンド: {round}/5</p>
+            <p>正解数: {correctRounds}</p>
+            <p>ヒント使用回数: {hintsUsed}</p>
+          </div>
+          <Button onClick={onReturnToTop}>トップに戻る</Button>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {currentCards.map((card, index) => (
@@ -86,6 +106,8 @@ export const GameScreen: React.FC<GameScreenProps> = ({
                 showResult &&
                 card.L02_006 === Math.max(...currentCards.map((c) => c.L02_006))
               }
+              revealedHints={revealedHints[index]}
+              onHint={() => handleHint(index)}
             />
           ))}
         </div>
@@ -99,7 +121,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({
                 : "不正解..."}
             </p>
             <Button onClick={handleNextRound}>
-              {round < 10 ? "次のラウンドへ" : "ゲーム終了"}
+              {round < 5 ? "次のラウンドへ" : "ゲーム終了"}
             </Button>
           </div>
         )}
