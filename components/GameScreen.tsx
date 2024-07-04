@@ -8,15 +8,17 @@ import confetti from "canvas-confetti";
 
 interface GameScreenProps {
   prefecture: string;
-  difficulty: number;
   cardCount: number;
-  onGameEnd: (correctRounds: number, hintsUsed: number) => void;
+  onGameEnd: (
+    correctRounds: number,
+    hintsUsed: number,
+    cardCount: number
+  ) => void;
   onReturnToTop: () => void;
 }
 
 export const GameScreen: React.FC<GameScreenProps> = ({
   prefecture,
-  difficulty,
   cardCount,
   onGameEnd,
   onReturnToTop,
@@ -47,6 +49,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({
   };
 
   const handleCardClick = (index: number) => {
+    if (selectedIndex !== null) return; // カードが既に選択されている場合は何もしない
     setSelectedIndex(index);
     const correct =
       currentCards[index].L02_006 ===
@@ -67,7 +70,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({
       setRound(round + 1);
       selectNewCards(landData);
     } else {
-      onGameEnd(correctRounds, hintsUsed);
+      onGameEnd(correctRounds, hintsUsed, cardCount);
     }
   };
 
@@ -108,6 +111,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({
               }
               revealedHints={revealedHints[index]}
               onHint={() => handleHint(index)}
+              disabled={selectedIndex !== null}
             />
           ))}
         </div>

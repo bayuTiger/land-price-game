@@ -3,7 +3,7 @@ import React from "react";
 import { LandPriceProperties } from "../utils/dataUtils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MapPin, Train, TrendingUp } from "lucide-react";
+import { MapPin, Train, TrendingUp, Calendar } from "lucide-react";
 
 interface LandPriceCardProps {
   data: LandPriceProperties;
@@ -13,6 +13,7 @@ interface LandPriceCardProps {
   isCorrect: boolean;
   revealedHints: number;
   onHint: () => void;
+  disabled: boolean;
 }
 
 export const LandPriceCard: React.FC<LandPriceCardProps> = ({
@@ -23,6 +24,7 @@ export const LandPriceCard: React.FC<LandPriceCardProps> = ({
   isCorrect,
   revealedHints,
   onHint,
+  disabled,
 }) => {
   return (
     <Card
@@ -34,14 +36,18 @@ export const LandPriceCard: React.FC<LandPriceCardProps> = ({
               : "bg-red-100 border-red-500"
             : ""
         }
+        ${disabled ? "opacity-50" : ""}
       `}
-      onClick={onClick}
+      onClick={disabled ? undefined : onClick}
     >
       <CardHeader>
         <CardTitle className="text-lg">{data.L02_022.split("　")[1]}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-2">
+          <p className="flex items-center">
+            <Calendar className="mr-2" size={16} /> 調査年度: {data.L02_005}
+          </p>
           {revealedHints >= 1 && (
             <p className="flex items-center">
               <MapPin className="mr-2" size={16} /> {data.L02_043}
@@ -70,6 +76,7 @@ export const LandPriceCard: React.FC<LandPriceCardProps> = ({
                 onHint();
               }}
               className="mt-2"
+              disabled={disabled}
             >
               ヒントを表示 ({revealedHints + 1}/3)
             </Button>

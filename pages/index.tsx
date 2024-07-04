@@ -10,21 +10,20 @@ const App: React.FC = () => {
     "start"
   );
   const [selectedPrefecture, setSelectedPrefecture] = useState("");
-  const [difficulty, setDifficulty] = useState(1);
   const [cardCount, setCardCount] = useState(2);
   const [correctRounds, setCorrectRounds] = useState(0);
   const [hintsUsed, setHintsUsed] = useState(0);
 
-  const startGame = (prefecture: string, diff: number, count: number) => {
+  const startGame = (prefecture: string, count: number) => {
     setSelectedPrefecture(prefecture);
-    setDifficulty(diff);
     setCardCount(count);
     setGameState("playing");
   };
 
-  const endGame = (correct: number, hints: number) => {
+  const endGame = (correct: number, hints: number, count: number) => {
     setCorrectRounds(correct);
     setHintsUsed(hints);
+    setCardCount(count);
     setGameState("end");
   };
 
@@ -34,13 +33,19 @@ const App: React.FC = () => {
     setHintsUsed(0);
   };
 
+  const calculateScore = () => {
+    const baseScore = correctRounds * 100;
+    const cardCountBonus = cardCount * 20;
+    const hintPenalty = hintsUsed * 10;
+    return baseScore + cardCountBonus - hintPenalty;
+  };
+
   return (
     <div className="container mx-auto p-4">
       {gameState === "start" && <TopScreen onStart={startGame} />}
       {gameState === "playing" && (
         <GameScreen
           prefecture={selectedPrefecture}
-          difficulty={difficulty}
           cardCount={cardCount}
           onGameEnd={endGame}
           onReturnToTop={restartGame}
@@ -55,7 +60,9 @@ const App: React.FC = () => {
             <p className="text-center mb-2">
               正解したラウンド: {correctRounds}/5
             </p>
-            <p className="text-center mb-4">使用したヒント: {hintsUsed}</p>
+            <p className="text-center mb-2">使用したヒント: {hintsUsed}</p>
+            <p className="text-center mb-2">カード数: {cardCount}</p>
+            {/* <p className="text-center mb-4">総合スコア: {calculateScore()}</p> */}
             <Button onClick={restartGame} className="w-full">
               もう一度プレイ
             </Button>
