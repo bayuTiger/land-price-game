@@ -1,78 +1,109 @@
+// components/GameScreen.tsx
 import React, { useState, useEffect } from "react";
-import LandPriceCard from "./LandPriceCard";
-import { getLandPriceData } from "../utils/dataUtils";
+import { LandPriceCard } from "./LandPriceCard";
+import { getLandPriceData, LandPriceProperties } from "../utils/dataUtils";
+import { Button } from "../components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import confetti from "canvas-confetti";
 
 interface GameScreenProps {
   prefecture: string;
+  difficulty: number;
+  cardCount: number;
+  onGameEnd: () => void;
 }
 
-const GameScreen: React.FC<GameScreenProps> = ({ prefecture }) => {
-  const [landData, setLandData] = useState<any[]>([]);
-  const [currentPair, setCurrentPair] = useState<any[]>([]);
+export const GameScreen: React.FC<GameScreenProps> = ({
+  prefecture,
+  difficulty,
+  cardCount,
+  onGameEnd,
+}) => {
+  const [landData, setLandData] = useState<LandPriceProperties[]>([]);
+  const [currentCards, setCurrentCards] = useState<LandPriceProperties[]>([]);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [showResult, setShowResult] = useState(false);
-  const [isCorrect, setIsCorrect] = useState(false);
+  const [score, setScore] = useState(0);
+  const [round, setRound] = useState(1);
 
   useEffect(() => {
     const data = getLandPriceData(prefecture);
     setLandData(data);
-    selectNewPair(data);
+    selectNewCards(data);
   }, [prefecture]);
 
-  const selectNewPair = (data: any[]) => {
+  const selectNewCards = (data: LandPriceProperties[]) => {
     const shuffled = data.sort(() => 0.5 - Math.random());
-    setCurrentPair(shuffled.slice(0, 2));
+    setCurrentCards(shuffled.slice(0, cardCount));
     setShowResult(false);
+    setSelectedIndex(null);
   };
 
-  const handleChoice = (index: number) => {
+  const handleCardClick = (index: number) => {
+    setSelectedIndex(index);
     const correct =
-      currentPair[index].L02_006 >= currentPair[1 - index].L02_006;
-    setIsCorrect(correct);
+      currentCards[index].L02_006 ===
+      Math.max(...currentCards.map((card) => card.L02_006));
+    if (correct) {
+      setScore(score + difficulty);
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 },
+      });
+    }
     setShowResult(true);
   };
 
+  const handleNextRound = () => {
+    if (round < 10) {
+      setRound(round + 1);
+      selectNewCards(landData);
+    } else {
+      onGameEnd();
+    }
+  };
+
   return (
-    <div className="text-center">
-      <h2 className="text-2xl font-bold mb-4">
-        どちらの地価が高いでしょうか？
-      </h2>
-      <div className="flex justify-center space-x-4">
-        {currentPair.map((item, index) => (
-          <LandPriceCard
-            key={index}
-            data={item}
-            onClick={() => handleChoice(index)}
-            showPrice={showResult}
-          />
-        ))}
-      </div>
-      {showResult && (
-        <div className="mt-4">
-          <p
-            className={`text-xl font-bold ${
-              isCorrect ? "text-green-500" : "text-red-500"
-            }`}
-          >
-            {isCorrect ? "正解！" : "不正解…"}
-          </p>
+    <Card className="w-full max-w-4xl mx-auto">
+      <CardHeader>
+        <CardTitle>どの地価が一番高いでしょうか？</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="mb-4">
+          <p>ラウンド: {round}/10</p>
+          <p>スコア: {score}</p>
         </div>
-      )}
-      <div className="mt-4 space-x-4">
-        <button
-          className="px-4 py-2 bg-gray-500 text-white rounded"
-          onClick={() => selectNewPair(landData)}
-        >
-          次の問題へ
-        </button>
-        <button
-          className="px-4 py-2 bg-blue-500 text-white rounded"
-          onClick={() => window.location.reload()}
-        >
-          都道府県を選択する
-        </button>
-      </div>
-    </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {currentCards.map((card, index) => (
+            <LandPriceCard
+              key={index}
+              data={card}
+              onClick={() => handleCardClick(index)}
+              showPrice={showResult}
+              isSelected={selectedIndex === index}
+              isCorrect={
+                showResult &&
+                card.L02_006 === Math.max(...currentCards.map((c) => c.L02_006))
+              }
+            />
+          ))}
+        </div>
+        {showResult && (
+          <div className="mt-4 text-center">
+            <p className="text-xl font-bold mb-2">
+              {selectedIndex !== null &&
+              currentCards[selectedIndex].L02_006 ===
+                Math.max(...currentCards.map((c) => c.L02_006))
+                ? "正解！"
+                : "不正解..."}
+            </p>
+            <Button onClick={handleNextRound}>
+              {round < 10 ? "次のラウンドへ" : "ゲーム終了"}
+            </Button>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };
-
-export default GameScreen;
