@@ -5,6 +5,7 @@ import { GameScreen } from "../components/GameScreen";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const App: React.FC = () => {
   const [gameState, setGameState] = useState<"start" | "playing" | "end">(
