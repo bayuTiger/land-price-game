@@ -1,7 +1,9 @@
+// components/LandPriceCard.tsx
 import React from "react";
+import { LandPriceProperties } from "../utils/dataUtils";
 
 interface LandPriceCardProps {
-  data: any;
+  data: LandPriceProperties;
   onClick: () => void;
   showPrice: boolean;
 }
