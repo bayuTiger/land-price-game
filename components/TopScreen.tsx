@@ -24,7 +24,7 @@ export const TopScreen: React.FC<TopScreenProps> = ({ onStart }) => {
           <PrefectureSelector onSelect={setSelectedPrefecture} />
 
           <div>
-            <Label>カード数: {cardCount}</Label>
+            <Label>選択肢の数: {cardCount}</Label>
             <Slider
               min={2}
               max={5}
