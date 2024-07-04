@@ -5,6 +5,8 @@ import { getLandPriceData, LandPriceProperties } from "../utils/dataUtils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import confetti from "canvas-confetti";
+import { motion, AnimatePresence } from "framer-motion";
+
 
 interface GameScreenProps {
   prefecture: string;
@@ -89,46 +91,69 @@ export const GameScreen: React.FC<GameScreenProps> = ({
         <CardTitle>どの地価が一番高いでしょうか？</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="mb-4 flex justify-between items-center">
+        <motion.div
+          className="mb-4 flex justify-between items-center"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
           <div>
             <p>ラウンド: {round}/5</p>
             <p>正解数: {correctRounds}</p>
             <p>ヒント使用回数: {hintsUsed}</p>
           </div>
           <Button onClick={onReturnToTop}>トップに戻る</Button>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {currentCards.map((card, index) => (
-            <LandPriceCard
-              key={index}
-              data={card}
-              onClick={() => handleCardClick(index)}
-              showPrice={showResult}
-              isSelected={selectedIndex === index}
-              isCorrect={
-                showResult &&
-                card.L02_006 === Math.max(...currentCards.map((c) => c.L02_006))
-              }
-              revealedHints={revealedHints[index]}
-              onHint={() => handleHint(index)}
-              disabled={selectedIndex !== null}
-            />
-          ))}
-        </div>
-        {showResult && (
-          <div className="mt-4 text-center">
-            <p className="text-xl font-bold mb-2">
-              {selectedIndex !== null &&
-              currentCards[selectedIndex].L02_006 ===
-                Math.max(...currentCards.map((c) => c.L02_006))
-                ? "正解！"
-                : "不正解..."}
-            </p>
-            <Button onClick={handleNextRound}>
-              {round < 5 ? "次のラウンドへ" : "ゲーム終了"}
-            </Button>
-          </div>
-        )}
+        </motion.div>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={round}
+            initial={{ opacity: 0, x: 100 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -100 }}
+            transition={{ duration: 0.5 }}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+          >
+            {currentCards.map((card, index) => (
+              <LandPriceCard
+                key={index}
+                data={card}
+                onClick={() => handleCardClick(index)}
+                showPrice={showResult}
+                isSelected={selectedIndex === index}
+                isCorrect={
+                  showResult &&
+                  card.L02_006 ===
+                    Math.max(...currentCards.map((c) => c.L02_006))
+                }
+                revealedHints={revealedHints[index]}
+                onHint={() => handleHint(index)}
+                disabled={selectedIndex !== null}
+              />
+            ))}
+          </motion.div>
+        </AnimatePresence>
+        <AnimatePresence>
+          {showResult && (
+            <motion.div
+              className="mt-4 text-center"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.5 }}
+            >
+              <p className="text-xl font-bold mb-2">
+                {selectedIndex !== null &&
+                currentCards[selectedIndex].L02_006 ===
+                  Math.max(...currentCards.map((c) => c.L02_006))
+                  ? "正解！"
+                  : "不正解..."}
+              </p>
+              <Button onClick={handleNextRound}>
+                {round < 5 ? "次のラウンドへ" : "ゲーム終了"}
+              </Button>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </CardContent>
     </Card>
   );
