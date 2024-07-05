@@ -1,19 +1,30 @@
 // pages/index.tsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { TopScreen } from "../components/TopScreen";
 import { GameScreen } from "../components/GameScreen";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
+import { Loader2 } from "lucide-react";
 
 const App: React.FC = () => {
-  const [gameState, setGameState] = useState<"start" | "playing" | "end">(
-    "start"
-  );
+  const [gameState, setGameState] = useState<
+    "loading" | "start" | "playing" | "end"
+  >("loading");
   const [selectedPrefecture, setSelectedPrefecture] = useState("");
   const [cardCount, setCardCount] = useState(2);
   const [correctRounds, setCorrectRounds] = useState(0);
   const [hintsUsed, setHintsUsed] = useState(0);
+
+  useEffect(() => {
+    const initializeApp = async () => {
+      // ここに初期化処理を記述
+      // 例: データのプリフェッチ、設定の読み込みなど
+      setGameState("start");
+    };
+
+    initializeApp();
+  }, []);
 
   const startGame = (prefecture: string, count: number) => {
     setSelectedPrefecture(prefecture);
@@ -44,6 +55,25 @@ const App: React.FC = () => {
   return (
     <div className="container mx-auto p-4">
       <AnimatePresence mode="wait">
+        {gameState === "loading" && (
+          <motion.div
+            key="loading"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="flex items-center justify-center h-screen"
+          >
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            >
+              <Loader2 className="w-12 h-12 text-blue-500" />
+            </motion.div>
+            <p className="ml-4 text-lg font-semibold">
+              アプリを読み込んでいます...
+            </p>
+          </motion.div>
+        )}
         {gameState === "start" && (
           <motion.div
             key="start"
