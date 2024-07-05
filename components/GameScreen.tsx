@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import confetti from "canvas-confetti";
 import { motion, AnimatePresence } from "framer-motion";
+import { ArrowLeft } from 'lucide-react'; 
 
 
 interface GameScreenProps {
@@ -19,6 +20,7 @@ interface GameScreenProps {
   onReturnToTop: () => void;
 }
 
+
 export const GameScreen: React.FC<GameScreenProps> = ({
   prefecture,
   cardCount,
@@ -28,13 +30,11 @@ export const GameScreen: React.FC<GameScreenProps> = ({
   const [landData, setLandData] = useState<LandPriceProperties[]>([]);
   const [currentCards, setCurrentCards] = useState<LandPriceProperties[]>([]);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-  const [showResult, setShowResult] = useState(false);
+  const [showAllInfo, setShowAllInfo] = useState(false);
   const [round, setRound] = useState(1);
   const [correctRounds, setCorrectRounds] = useState(0);
   const [hintsUsed, setHintsUsed] = useState(0);
-  const [revealedHints, setRevealedHints] = useState<number[]>(
-    Array(cardCount).fill(0)
-  );
+  const [revealedHints, setRevealedHints] = useState<number[]>([]);
 
   useEffect(() => {
     const data = getLandPriceData(prefecture);
@@ -45,7 +45,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({
   const selectNewCards = (data: LandPriceProperties[]) => {
     const shuffled = data.sort(() => 0.5 - Math.random());
     setCurrentCards(shuffled.slice(0, cardCount));
-    setShowResult(false);
+    setShowAllInfo(false);
     setSelectedIndex(null);
     setRevealedHints(Array(cardCount).fill(0));
   };
@@ -53,6 +53,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({
   const handleCardClick = (index: number) => {
     if (selectedIndex !== null) return; // カードが既に選択されている場合は何もしない
     setSelectedIndex(index);
+    setShowAllInfo(true);
     const correct =
       currentCards[index].L02_006 ===
       Math.max(...currentCards.map((card) => card.L02_006));
@@ -64,7 +65,6 @@ export const GameScreen: React.FC<GameScreenProps> = ({
         origin: { y: 0.6 },
       });
     }
-    setShowResult(true);
   };
 
   const handleNextRound = () => {
@@ -102,7 +102,15 @@ export const GameScreen: React.FC<GameScreenProps> = ({
             <p>正解数: {correctRounds}</p>
             <p>ヒント使用回数: {hintsUsed}</p>
           </div>
-          <Button onClick={onReturnToTop}>トップに戻る</Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onReturnToTop}
+            className="text-sm"
+          >
+            <ArrowLeft className="mr-1 h-4 w-4" />
+            トップに戻る
+          </Button>
         </motion.div>
         <AnimatePresence mode="wait">
           <motion.div
@@ -118,22 +126,23 @@ export const GameScreen: React.FC<GameScreenProps> = ({
                 key={index}
                 data={card}
                 onClick={() => handleCardClick(index)}
-                showPrice={showResult}
                 isSelected={selectedIndex === index}
                 isCorrect={
-                  showResult &&
-                  card.L02_006 ===
-                    Math.max(...currentCards.map((c) => c.L02_006))
+                  showAllInfo
+                    ? card.L02_006 ===
+                      Math.max(...currentCards.map((c) => c.L02_006))
+                    : null
                 }
                 revealedHints={revealedHints[index]}
                 onHint={() => handleHint(index)}
                 disabled={selectedIndex !== null}
+                showAllInfo={showAllInfo}
               />
             ))}
           </motion.div>
         </AnimatePresence>
         <AnimatePresence>
-          {showResult && (
+          {showAllInfo && (
             <motion.div
               className="mt-4 text-center"
               initial={{ opacity: 0, y: 20 }}

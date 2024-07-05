@@ -3,29 +3,36 @@ import React, { useState } from "react";
 import { LandPriceProperties } from "../utils/dataUtils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MapPin, Train, TrendingUp, Calendar, HelpCircle } from "lucide-react";
+import {
+  MapPin,
+  Train,
+  TrendingUp,
+  Calendar,
+  HelpCircle,
+  DollarSign,
+} from "lucide-react";
 import { motion } from "framer-motion";
 
 interface LandPriceCardProps {
   data: LandPriceProperties;
   onClick: () => void;
-  showPrice: boolean;
   isSelected: boolean;
-  isCorrect: boolean;
+  isCorrect: boolean | null;
   revealedHints: number;
   onHint: () => void;
   disabled: boolean;
+  showAllInfo: boolean;
 }
 
 export const LandPriceCard: React.FC<LandPriceCardProps> = ({
   data,
   onClick,
-  showPrice,
   isSelected,
   isCorrect,
   revealedHints,
   onHint,
   disabled,
+  showAllInfo,
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [hintHoverTime, setHintHoverTime] = useState(0);
@@ -50,8 +57,9 @@ export const LandPriceCard: React.FC<LandPriceCardProps> = ({
     >
       <Card
         className={`cursor-pointer transition-all duration-300
+          ${isSelected ? "ring-2 ring-blue-500" : ""}
           ${
-            isSelected
+            showAllInfo
               ? isCorrect
                 ? "bg-green-100 border-green-500"
                 : "bg-red-100 border-red-500"
@@ -71,29 +79,30 @@ export const LandPriceCard: React.FC<LandPriceCardProps> = ({
             <p className="flex items-center">
               <Calendar className="mr-2" size={16} /> 調査年度: {data.L02_005}
             </p>
-            {revealedHints >= 1 && (
+            {(revealedHints >= 1 || showAllInfo) && (
               <p className="flex items-center">
                 <MapPin className="mr-2" size={16} /> {data.L02_043}
               </p>
             )}
-            {revealedHints >= 2 && (
+            {(revealedHints >= 2 || showAllInfo) && (
               <p className="flex items-center">
                 <Train className="mr-2" size={16} /> {data.L02_044} (徒歩
                 {Math.round(data.L02_045 / 80)}分)
               </p>
             )}
-            {revealedHints >= 3 && (
+            {(revealedHints >= 3 || showAllInfo) && (
               <p className="flex items-center">
                 <TrendingUp className="mr-2" size={16} /> 前年比: {data.L02_007}
                 %
               </p>
             )}
-            {showPrice && (
-              <p className="text-xl font-bold mt-4">
+            {showAllInfo && (
+              <p className="flex items-center text-xl font-bold mt-4">
+                <DollarSign className="mr-2" size={20} />{" "}
                 {data.L02_006.toLocaleString()}円/m²
               </p>
             )}
-            {revealedHints < 3 && !showPrice && (
+            {!showAllInfo && revealedHints < 3 && (
               <motion.div
                 whileHover={{ scale: 1.1 }}
                 onHoverStart={handleHintHoverStart}
